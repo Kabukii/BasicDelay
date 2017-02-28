@@ -41,7 +41,7 @@ class BasicDelayAudioProcessorEditor  : public AudioProcessorEditor,
 {
 public:
     //==============================================================================
-    BasicDelayAudioProcessorEditor (StereoPannerAudioProcessor& p);
+    BasicDelayAudioProcessorEditor (BasicDelayAudioProcessor& p);
     ~BasicDelayAudioProcessorEditor();
 
     //==============================================================================

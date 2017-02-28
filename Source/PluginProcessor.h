@@ -34,8 +34,20 @@ public:
 
     void processBlock (AudioSampleBuffer&, MidiBuffer&) override;
     
+   enum Parameters
+    {
+        kDelayTimeParam = 0,    //0
+        kFeedbackParam,         //1
+        kNumParameters          //2
+    };
+    
     float delayTime;
     float feedback;
+    int getNumParameters();
+    float getParameter (int index);
+    void setParameter (int index, float newValue);
+    const String getParameterName (int index);
+    const String getParameterText (int index);
 
     //==============================================================================
     AudioProcessorEditor* createEditor() override;

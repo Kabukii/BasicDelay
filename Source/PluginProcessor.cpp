@@ -25,6 +25,17 @@ BasicDelayAudioProcessor::BasicDelayAudioProcessor()
                        )
 #endif
 {
+    // Some feedback
+    feedback = 0.5;
+    
+    // Delay of 0.2 seconds
+    delayTime = 0.25;
+    
+    // Start reading from beginning of the circular buffer
+    readIndex = 0;
+    
+    //Initial delay buffer size
+    delayBufferLength = 0;
 }
 
 BasicDelayAudioProcessor::~BasicDelayAudioProcessor()
@@ -36,6 +47,63 @@ const String BasicDelayAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
+
+int BasicDelayAudioProcessor::getNumParameters()
+{
+    return kNumParameters;
+}
+
+float BasicDelayAudioProcessor::getParameter (int index)
+{
+    //This method will be called by the host, probably on the audio thread, so
+    //it's absolutely time-critical. Don't use critical sections or anything UI
+    //related, or anything at all that may block in any way!
+    switch (index)
+    {
+        case kDelayTimeParam:   return delayTime;
+        case kFeedbackParam:    return feedback;
+        default:                return 0.0f;
+    }
+}
+
+void BasicDelayAudioProcessor::setParameter(int index, float newValue)
+{
+    //This method will be called by the host, probably on the audio thread, so
+    //it's absolutely time-critical. Don't use critical sections or anything UI
+    //related, or anything at all that may block in any way!
+    switch (index)
+    {
+        case kDelayTimeParam:
+            delayTime = newValue;
+            // IMPORTANT: calculate the position of the readIndex relative to the write
+            // i.e. the delay time in samples
+            readIndex = (int)(writeIndex - (delayTime * delayBufferLength)
+                              + delayBufferLength) % delayBufferLength;
+            break;
+        case kFeedbackParam:
+            feedback = newValue;
+            break;
+        default:
+            break;
+    }
+}
+
+const String BasicDelayAudioProcessor::getParameterName (int index)
+{
+    switch (index)
+    {
+        case kDelayTimeParam:   return "delay time";
+        case kFeedbackParam:    return "feedback";
+        default:                break;
+    }
+    return String::empty;
+}
+
+const String BasicDelayAudioProcessor::getParameterText (int index)
+{
+    return String (getParameter (index), 2);
+}
+
 
 bool BasicDelayAudioProcessor::acceptsMidi() const
 {
@@ -89,6 +157,20 @@ void BasicDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    
+    //Maximum delay of 1 second
+    delayBufferLength = (int)(sampleRate);
+    
+    //Set the buffer to 1 channel of the size of delayBufferLength using setSize
+    delayBuffer.setSize(1, delayBufferLength);
+    
+    //Set all the samoples in the buffer to zero
+    delayBuffer.clear();
+    
+    //IMPORTANT: callculate the position of the read index relative to the write index
+    //i.e. the delay time in samples
+    readIndex = (int)(writeIndex - (delayTime * delayBufferLength)
+                      + delayBufferLength) % delayBufferLength;
 }
 
 void BasicDelayAudioProcessor::releaseResources()
@@ -134,12 +216,46 @@ void BasicDelayAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     // this code if your algorithm always overwrites all the output channels.
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+    
+    //chanelData is an array of length numSamples which contain
+    //the audio for one channel
+    float *channelData = buffer.getWritePointer(0);
+    
+    //delayData is gthe circular buffer for implementing the delay
+    float *delayData = delayBuffer.getWritePointer(0);
+    
+    //Set a wet mix level
+    float wetMix = 0.5;
+    
+    //main
+    for (int i = 0; i < buffer.getNumSamples(); i++)
+    {
+        
+        //Calculate the next output sample (current input sample + delayed version)
+        float outputSample = (channelData[i] + (wetMix * delayData[readIndex]));
+        
+        //write the current input into the delay buffer along with delayed sample
+        delayData[writeIndex] = channelData[i] + (delayData[readIndex] * feedback);
+        
+        //Increment the read index then check to see if it's greater than the
+        //buffer length. If so wrap back around to sero
+        if (readIndex++ >= delayBufferLength)
+            readIndex = 0;
+        
+        //Same with write index
+        if (writeIndex++ >= delayBufferLength)
+            writeIndex = 0;
+        
+        //Assign output sample computed above to output buffer
+        channelData[i] = outputSample;
+    
+    }
 
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-        float* channelData = buffer.getWritePointer (channel);
+        float *channelData = buffer.getWritePointer (channel);
 
         // ..do something to the data...
     }
