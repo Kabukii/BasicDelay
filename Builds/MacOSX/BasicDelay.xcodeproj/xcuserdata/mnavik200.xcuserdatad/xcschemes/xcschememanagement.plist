@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>BasicDelay (AU).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>BasicDelay (All).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+		<key>BasicDelay (Shared Code).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>BasicDelay (VST).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>223BA104E3B6CA5CBD3D8056</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E28CFFE56FCCA0E5E0DBF8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>7B882924E0ED8A79E420ADE4</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FE3CE5A463FE0ED5E4C9C2E2</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+	</dict>
+</dict>
+</plist>
